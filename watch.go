@@ -23,6 +23,9 @@ type Watch struct {
 	done       chan struct{}
 	once       sync.Once // to only close once
 
+	// lock for read/writing the endpoints slice
+	lock sync.RWMutex
+
 	LastEvent  time.Time
 	EventCount int
 	event      chan struct{}
@@ -71,10 +74,14 @@ func (ss *ServerSet) Watch() (*Watch, error) {
 					panic(fmt.Errorf("unable to rewatch endpoint after znode event: %v", err))
 				}
 
-				watch.endpoints, err = watch.updateEndpoints(connection, keys)
+				endpoints, err := watch.updateEndpoints(connection, keys)
 				if err != nil {
 					panic(fmt.Errorf("unable to updated endpoint list after znode event: %v", err))
 				}
+
+				watch.lock.Lock()
+				watch.endpoints = endpoints
+				watch.lock.Unlock()
 
 				watch.triggerEvent()
 
@@ -110,6 +117,9 @@ func (ss *ServerSet) Watch() (*Watch, error) {
 
 // Endpoints returns a slice of the current list of servers/endpoints associated with this watch.
 func (w *Watch) Endpoints() []string {
+	w.lock.RLock()
+	defer w.lock.RUnlock()
+
 	return w.endpoints
 }
 

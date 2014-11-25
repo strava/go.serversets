@@ -25,7 +25,7 @@ type Endpoint struct {
 	key    string
 	ping   func() error
 	alive  bool
-	closed bool
+	closed chan struct{} // kills the ping function
 
 	once sync.Once // to only close once
 }
@@ -43,6 +43,7 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 		port:       port,
 		ping:       ping,
 		alive:      true,
+		closed:     make(chan struct{}, 1),
 	}
 
 	if ping != nil {
@@ -69,7 +70,7 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 					connection = nil
 				}
 			case <-endpoint.disconnect:
-				endpoint.closed = true
+				endpoint.closed <- struct{}{}
 				connection.Close()
 				endpoint.done <- struct{}{}
 				return
@@ -94,17 +95,18 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 			for {
 				time.Sleep(endpoint.PingRate)
 
-				if endpoint.closed {
+				select {
+				case <-endpoint.closed:
 					return
-				}
+				default:
+					alive := endpoint.ping() == nil
+					if alive != endpoint.alive {
+						endpoint.alive = alive
+						err := endpoint.update(connection)
 
-				alive := endpoint.ping() == nil
-				if alive != endpoint.alive {
-					endpoint.alive = alive
-					err := endpoint.update(connection)
-
-					if err != nil {
-						panic(fmt.Errorf("unable to reregister after ping change: %v", err))
+						if err != nil {
+							panic(fmt.Errorf("unable to reregister after ping change: %v", err))
+						}
 					}
 				}
 			}
