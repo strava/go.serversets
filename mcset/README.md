@@ -1,4 +1,4 @@
-go.serversets/mcset [![Godoc Reference](https://godoc.org/github.com/strava/go.serversets?status.png)](https://godoc.org/github.com/strava/go.serversets/mcset)
+go.serversets/mcset [![Build Status](https://travis-ci.org/strava/go.serversets.png?branch=master)](https://travis-ci.org/strava/go.serversets) [![Godoc Reference](https://godoc.org/github.com/strava/go.serversets?status.png)](https://godoc.org/github.com/strava/go.serversets/mcset)
 =====================
 
 Package **mcset** provides consistent sharding over a set of memcache nodes

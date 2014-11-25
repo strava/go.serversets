@@ -1,4 +1,4 @@
-go.serversets [![Godoc Reference](https://godoc.org/github.com/strava/go.serversets?status.png)](https://godoc.org/github.com/strava/go.serversets)
+go.serversets [![Build Status](https://travis-ci.org/strava/go.serversets.png?branch=master)](https://travis-ci.org/strava/go.serversets) [![Godoc Reference](https://godoc.org/github.com/strava/go.serversets?status.png)](https://godoc.org/github.com/strava/go.serversets)
 =============
 
 Package **go.serversets** provides an simple interface for service discovery using [Apache Zookeeper](http://zookeeper.apache.org/).
