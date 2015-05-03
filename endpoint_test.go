@@ -3,6 +3,7 @@ package serversets
 import (
 	"errors"
 	"testing"
+	"time"
 )
 
 func TestEndpointSameName(t *testing.T) {
@@ -126,6 +127,27 @@ func TestEndpointPingInitiallyDown(t *testing.T) {
 	}
 }
 
+func TestEndpointClosePingRoutine(t *testing.T) {
+	set := New(Test, "gotest", []string{TestServer})
+
+	ping := 0
+	ep, err := set.RegisterEndpoint("localhost", 1, func() error {
+		ping++
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("registration failure: %v", err)
+	}
+
+	ep.Close()
+
+	time.Sleep(3 * time.Second)
+	if ping > 1 {
+		t.Errorf("ping should be closed, called %d times", ping)
+	}
+}
+
 func TestEndpointMultipleClose(t *testing.T) {
 	set := New(Test, "gotest", []string{TestServer})
 
@@ -134,6 +156,7 @@ func TestEndpointMultipleClose(t *testing.T) {
 		t.Fatalf("registration failure: %v", err)
 	}
 
+	ep.Close()
 	ep.Close()
 	ep.Close()
 	ep.Close()

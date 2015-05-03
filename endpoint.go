@@ -13,21 +13,18 @@ import (
 // to be discovered by clients/watchers.
 type Endpoint struct {
 	*ServerSet
-	PingRate   time.Duration // default 1 second
+	PingRate   time.Duration // default/initial is 1 second
 	CloseEvent chan struct{}
 
-	disconnect chan struct{}
-	done       chan struct{}
+	done chan struct{}
+	wg   sync.WaitGroup
 
 	host string
 	port int
 
-	key    string
-	ping   func() error
-	alive  bool
-	closed chan struct{} // kills the ping function
-
-	once sync.Once // to only close once
+	key   string
+	ping  func() error
+	alive bool
 }
 
 // RegisterEndpoint registers a host and port as alive. It creates the appropriate
@@ -37,13 +34,11 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 		ServerSet:  ss,
 		PingRate:   time.Second,
 		CloseEvent: make(chan struct{}, 1),
-		disconnect: make(chan struct{}),
 		done:       make(chan struct{}),
 		host:       host,
 		port:       port,
 		ping:       ping,
 		alive:      true,
-		closed:     make(chan struct{}, 1),
 	}
 
 	if ping != nil {
@@ -61,7 +56,9 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 	}
 
 	// spawn goroutine to deal with connection/session issues.
+	endpoint.wg.Add(1)
 	go func() {
+		defer endpoint.wg.Done()
 		for {
 			select {
 			case event := <-sessionEvents:
@@ -69,10 +66,8 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 					connection.Close()
 					connection = nil
 				}
-			case <-endpoint.disconnect:
-				endpoint.closed <- struct{}{}
+			case <-endpoint.done:
 				connection.Close()
-				endpoint.done <- struct{}{}
 				return
 			}
 
@@ -91,22 +86,23 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 	}()
 
 	if ping != nil {
+		endpoint.wg.Add(1)
 		go func() {
+			defer endpoint.wg.Done()
 			for {
-				time.Sleep(endpoint.PingRate)
-
 				select {
-				case <-endpoint.closed:
+				case <-time.After(endpoint.PingRate):
+				case <-endpoint.done:
 					return
-				default:
-					alive := endpoint.ping() == nil
-					if alive != endpoint.alive {
-						endpoint.alive = alive
-						err := endpoint.update(connection)
+				}
 
-						if err != nil {
-							panic(fmt.Errorf("unable to reregister after ping change: %v", err))
-						}
+				alive := endpoint.ping() == nil
+				if alive != endpoint.alive {
+					endpoint.alive = alive
+					err := endpoint.update(connection)
+
+					if err != nil {
+						panic(fmt.Errorf("unable to reregister after ping change: %v", err))
 					}
 				}
 			}
@@ -119,11 +115,15 @@ func (ss *ServerSet) RegisterEndpoint(host string, port int, ping func() error) 
 // Close blocks until the client connection to Zookeeper is closed.
 // If already called, will simply return, even if in the process of closing.
 func (ep *Endpoint) Close() {
-	ep.once.Do(func() {
-		ep.disconnect <- struct{}{}
-		<-ep.done
-		ep.CloseEvent <- struct{}{}
-	})
+	select {
+	case <-ep.done:
+		return
+	default:
+	}
+
+	close(ep.done)
+	ep.wg.Wait()
+	ep.CloseEvent <- struct{}{}
 
 	return
 }

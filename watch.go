@@ -19,29 +19,25 @@ import (
 type Watch struct {
 	serverSet *ServerSet
 
-	disconnect chan struct{}
-	done       chan struct{}
-	once       sync.Once // to only close once
-
-	// lock for read/writing the endpoints slice
-	lock sync.RWMutex
-
 	LastEvent  time.Time
 	EventCount int
 	event      chan struct{}
-	endpoints  []string
-	closed     bool
+
+	done chan struct{} // used for closing
+	wg   sync.WaitGroup
+
+	// lock for read/writing the endpoints slice
+	lock      sync.RWMutex
+	endpoints []string
 }
 
 // Watch creates a new watch on this server set. Changes to the set will
 // update watch.Endpoints() and an event will be sent to watch.Event right after that happens.
 func (ss *ServerSet) Watch() (*Watch, error) {
 	watch := &Watch{
-		serverSet:  ss,
-		disconnect: make(chan struct{}),
-		done:       make(chan struct{}),
-
-		event: make(chan struct{}, 1),
+		serverSet: ss,
+		done:      make(chan struct{}),
+		event:     make(chan struct{}, 1),
 	}
 
 	connection, sessionEvents, err := ss.connectToZookeeper()
@@ -60,7 +56,9 @@ func (ss *ServerSet) Watch() (*Watch, error) {
 	}
 
 	// spawn a goroutine to deal with session disconnects and watch events
+	watch.wg.Add(1)
 	go func() {
+		defer watch.wg.Done()
 		for {
 			select {
 			case event := <-sessionEvents:
@@ -85,9 +83,8 @@ func (ss *ServerSet) Watch() (*Watch, error) {
 
 				watch.triggerEvent()
 
-			case <-watch.disconnect:
+			case <-watch.done:
 				connection.Close()
-				watch.done <- struct{}{}
 				return
 			}
 
@@ -132,20 +129,31 @@ func (w *Watch) Event() <-chan struct{} {
 // Close blocks until the underlying Zookeeper connection is closed.
 // If already called, will simply return, even if in the process of closing due to another call.
 func (w *Watch) Close() {
-	w.once.Do(func() {
-		w.closed = true
-		w.disconnect <- struct{}{}
-		close(w.event)
-		<-w.done
-	})
+	select {
+	case <-w.done:
+		return
+	default:
+	}
 
+	close(w.done)
+	w.wg.Wait()
+
+	// the goroutine watching for events must be terminted
+	// before we close this channel, since it might still be sending events.
+	close(w.event)
 	return
 }
 
 // IsClosed returns if this watch has been closed. This is a way for libraries wrapping
 // this package to know if their underlying watch is closed and should stop looking for events.
 func (w *Watch) IsClosed() bool {
-	return w.closed
+	select {
+	case <-w.done:
+		return true
+	default:
+	}
+
+	return false
 }
 
 // watch creates the actual Zookeeper watch.
