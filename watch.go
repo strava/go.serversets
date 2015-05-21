@@ -127,10 +127,10 @@ func (w *Watch) Event() <-chan struct{} {
 }
 
 // Close blocks until the underlying Zookeeper connection is closed.
-// If already called, will simply return, even if in the process of closing due to another call.
 func (w *Watch) Close() {
 	select {
 	case <-w.done:
+		w.wg.Wait()
 		return
 	default:
 	}
