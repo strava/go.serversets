@@ -3,20 +3,20 @@ package mcset
 import (
 	"net"
 
+	"github.com/strava/go.serversets/fixedset"
+
 	"testing"
 )
 
 func TestNew(t *testing.T) {
-	tw := NewTestWatcher()
-	tw.endpoints = []string{"localhost:2181"}
+	fs := fixedset.New([]string{"localhost:2181"})
 
-	mcset := New(tw)
+	mcset := New(fs)
 	if l := len(mcset.Endpoints()); l != 1 {
 		t.Errorf("should have one endpoint but got %v", l)
 	}
 
-	tw.endpoints = []string{"localhost:2181", "localhost:2182"}
-	tw.event <- struct{}{}
+	fs.SetEndpoints([]string{"localhost:2181", "localhost:2182"})
 
 	<-mcset.Event()
 	if len(mcset.Endpoints()) != 2 {
@@ -32,10 +32,10 @@ func TestCloseWatch(t *testing.T) {
 		event <- struct{}{}
 	}
 
-	tw := NewTestWatcher()
-	New(tw)
+	fs := fixedset.New(nil)
+	New(fs)
 
-	tw.Close()
+	fs.Close()
 
 	// little event channel to allow the other goroutine to run and quit as it should
 	<-event
@@ -112,33 +112,4 @@ func TestMCSetTriggerEvent(t *testing.T) {
 	if mcset.EventCount != 3 {
 		t.Errorf("event count not right, got %v", mcset.EventCount)
 	}
-}
-
-type TestWatcher struct {
-	endpoints []string
-	event     chan struct{}
-	closed    bool
-}
-
-func NewTestWatcher() *TestWatcher {
-	return &TestWatcher{
-		event: make(chan struct{}, 1),
-	}
-}
-
-func (tw *TestWatcher) Endpoints() []string {
-	return tw.endpoints
-}
-
-func (tw *TestWatcher) Event() <-chan struct{} {
-	return tw.event
-}
-
-func (tw *TestWatcher) Close() {
-	tw.closed = true
-	close(tw.event)
-}
-
-func (tw *TestWatcher) IsClosed() bool {
-	return tw.closed
 }
