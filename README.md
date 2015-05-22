@@ -9,6 +9,8 @@ the endpoint list for common use cases:
 
 * [mcset](/mcset) provides consistent hashing over a set of memcache hosts.
 * [httpset](/httpset) round-robins standard HTTP requests to the set of hosts.
+* [fixedset](/fixedset) severset watch without the zookeeper. Take advantage of
+the load balancing packages without the zookeeper discovery.
 
 This package is used internally at [Strava](http://strava.com) for 
 [Finagle](https://twitter.github.io/finagle/) service discovery and memcache node registration. 
