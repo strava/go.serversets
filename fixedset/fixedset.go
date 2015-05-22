@@ -15,13 +15,14 @@ type FixedSet struct {
 
 	endpoints []string
 	lock      sync.RWMutex
-	closed    bool
+	done      chan struct{}
 }
 
 // New creates a new FixedSet with the given endpoints.
 func New(endpoints []string) *FixedSet {
 	fs := &FixedSet{
 		event: make(chan struct{}, 1),
+		done:  make(chan struct{}),
 	}
 	fs.setEndpoints(endpoints)
 
@@ -59,16 +60,25 @@ func (fs *FixedSet) Event() <-chan struct{} {
 
 // Close for this service just sets a boolean since there isn't a lot of async stuff going on.
 func (fs *FixedSet) Close() {
-
-	if !fs.IsClosed() {
-		close(fs.event)
-		fs.closed = true
+	select {
+	case <-fs.done:
+		return
+	default:
 	}
+
+	close(fs.done)
+	close(fs.event)
 }
 
 // IsClosed returns if this fixed set has been closed.
 func (fs *FixedSet) IsClosed() bool {
-	return fs.closed
+	select {
+	case <-fs.done:
+		return true
+	default:
+	}
+
+	return false
 }
 
 // triggerEvent will queue up something in the Event channel if there isn't already something there.
