@@ -25,29 +25,23 @@ Usage
 			log.Fatalf("Registration error: %v", err)
 		}
 
-		cluster := httpset.New(watch)
-		cluster.UseHTTPS = true  // if scheme not specified, will use https
+		t := httpset.NewTransport(watch)
+		t.UseHTTPS = true  // if scheme not specified, will use https
 
-		// can make requests using the standard net/http methods
-		resp, err = cluster.Do(req)
+		client := &http.Client{
+			Transport: t,
+		}
 
-		// use just the path and the hostname will be added
-		// scheme will be http or https depending on cluster.UseHTTPS
-		resp, err = cluster.Get("/some/path")
-
-		// or use a complete url and only the hostname will be swapped
-		resp, err = cluster.Head(http://somehost.com/some/path)
-
-		resp, err = cluster.Post(url, bodyType, body)
-		resp, err = cluster.PostForm(url)
-
-	    // the hostnames of these requests are replaces with those in the serverset
-	    // in a round-robin fashion.
+		// Use the client as you normally would.
 	}
 
 Dependencies
 ------------
-* [github.com/strava/go.serversets](github.com/strava/go.serversets) to get the server list
+* [github.com/strava/go.serversets](github.com/strava/go.serversets) to get the server list.
+However, one can use a predefined set of servers by doing something like:
+
+		t := httpset.NewTransport(nil)
+		t.SetEndpoints([]string{"server1.com", "server2.com"})
 
 Potential Improvements and Contributing
 ---------------------------------------
