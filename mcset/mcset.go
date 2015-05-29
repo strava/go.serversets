@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/stathat/consistent"
+	"github.com/strava/go.serversets/mcset/consistent"
 )
 
 var (
