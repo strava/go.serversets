@@ -49,23 +49,14 @@ func TestNewWithoutWatcher(t *testing.T) {
 	// should not panic or anything
 }
 
-func TestMCSetSetEndpoints(t *testing.T) {
-	mcset := New(nil)
-	mcset.SetEndpoints([]string{"localhost:2181"})
-
-	if l := len(mcset.consistent.Members()); l != 1 {
-		t.Errorf("should set members of consistent hash")
-	}
-}
-
 func TestMCSetPickServer(t *testing.T) {
 	mcset := New(nil)
 
 	mcset.SetEndpoints([]string{"localhost:2181", "localhost:2182", "localhost:2183", "localhost:2184"})
-	server1, _ := mcset.PickServer("fooo")
+	server1, _ := mcset.PickServer("foo")
 
 	mcset.SetEndpoints([]string{"localhost:2181", "localhost:2182", "localhost:2183"})
-	server2, _ := mcset.PickServer("fooo")
+	server2, _ := mcset.PickServer("foo")
 
 	if server1.String() != server2.String() {
 		t.Errorf("should be consistent %v != %v", server1, server2)

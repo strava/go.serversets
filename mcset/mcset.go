@@ -3,10 +3,12 @@ package mcset
 import (
 	"errors"
 	"net"
+	"sort"
 	"sync"
 	"time"
 
-	"github.com/strava/go.serversets/mcset/consistent"
+	"github.com/strava/go.serversets/mcset/consistenthash"
+	"github.com/strava/go.serversets/mcset/mmh3"
 )
 
 var (
@@ -33,7 +35,7 @@ type MCSet struct {
 	// calling SetEndpoints will not trigger this type of event.
 	event chan struct{}
 
-	consistent *consistent.Consistent
+	consistent *consistenthash.Map
 
 	lock      sync.Mutex
 	endpoints []string
@@ -46,9 +48,7 @@ type MCSet struct {
 func New(watch Watcher) *MCSet {
 	mcset := &MCSet{
 		Watcher: watch,
-
-		event:      make(chan struct{}, 1),
-		consistent: consistent.New(),
+		event:   make(chan struct{}, 1),
 	}
 
 	if watch != nil {
@@ -103,7 +103,10 @@ func (s *MCSet) setEndpoints(endpoints []string) {
 	s.addresses = addresses
 	s.endpoints = endpoints
 
-	s.consistent.Set(endpoints)
+	sort.StringSlice(endpoints).Sort()
+
+	s.consistent = consistenthash.New(150, mmh3.Sum32)
+	s.consistent.Add(endpoints...)
 }
 
 // Endpoints returns the current endpoints for this service.
@@ -122,13 +125,13 @@ func (s *MCSet) Event() <-chan struct{} {
 // PickServer consistently picks a server from the list.
 // Kind of a weird signature but is necessary to satisfy the memcache.ServerSelector interface.
 func (s *MCSet) PickServer(key string) (net.Addr, error) {
-	if len(s.consistent.Members()) == 0 {
+	if s.consistent == nil {
 		return nil, ErrNoServers
 	}
 
-	server, err := s.consistent.Get(key)
-	if err != nil {
-		return nil, err
+	server := s.consistent.Get(key)
+	if server == "" {
+		return nil, ErrNoServers
 	}
 	return s.addresses[server], nil
 }
