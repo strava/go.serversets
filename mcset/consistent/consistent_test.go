@@ -96,9 +96,9 @@ type gtest struct {
 }
 
 var gmtests = []gtest{
-	{"ggg", "abcdefg"},
+	{"ggg", "hijklmn"},
 	{"hhh", "opqrstu"},
-	{"iiiii", "hijklmn"},
+	{"iiiii", "opqrstu"},
 }
 
 func TestGetMultiple(t *testing.T) {
@@ -137,9 +137,9 @@ func TestGetMultipleQuick(t *testing.T) {
 }
 
 var rtestsBefore = []gtest{
-	{"ggg", "abcdefg"},
+	{"ggg", "hijklmn"},
 	{"hhh", "opqrstu"},
-	{"iiiii", "hijklmn"},
+	{"iiiii", "opqrstu"},
 }
 
 var rtestsAfter = []gtest{
@@ -305,13 +305,13 @@ func TestGetN(t *testing.T) {
 	if len(members) != 3 {
 		t.Errorf("expected 3 members instead of %d", len(members))
 	}
-	if members[0] != "opqrstu" {
+	if members[0] != "abcdefg" {
 		t.Errorf("wrong members[0]: %q", members[0])
 	}
-	if members[1] != "abcdefg" {
+	if members[1] != "hijklmn" {
 		t.Errorf("wrong members[1]: %q", members[1])
 	}
-	if members[2] != "hijklmn" {
+	if members[2] != "opqrstu" {
 		t.Errorf("wrong members[2]: %q", members[2])
 	}
 }
@@ -348,13 +348,13 @@ func TestGetNMore(t *testing.T) {
 	if len(members) != 3 {
 		t.Errorf("expected 3 members instead of %d", len(members))
 	}
-	if members[0] != "opqrstu" {
+	if members[0] != "abcdefg" {
 		t.Errorf("wrong members[0]: %q", members[0])
 	}
-	if members[1] != "abcdefg" {
+	if members[1] != "hijklmn" {
 		t.Errorf("wrong members[1]: %q", members[1])
 	}
-	if members[2] != "hijklmn" {
+	if members[2] != "opqrstu" {
 		t.Errorf("wrong members[2]: %q", members[2])
 	}
 }
@@ -730,7 +730,7 @@ func TestConcurrentGetSet(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				if a != "def" && a != "vwx" {
+				if a != "mno" && a != "pqr" {
 					t.Errorf("got %s, expected abc", a)
 				}
 				time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)

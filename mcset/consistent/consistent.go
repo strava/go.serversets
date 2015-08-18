@@ -236,13 +236,17 @@ func (c *Consistent) GetN(name string, n int) ([]string, error) {
 	return res, nil
 }
 
+var t = crc32.MakeTable(crc32.Castagnoli)
+
 func (c *Consistent) hashKey(key string) uint32 {
-	if len(key) < 64 {
-		var scratch [64]byte
+	if len(key) < 128 {
+		var scratch [128]byte
 		copy(scratch[:], key)
-		return crc32.ChecksumIEEE(scratch[:len(key)])
+
+		return crc32.Checksum(scratch[:len(key)], t)
 	}
-	return crc32.ChecksumIEEE([]byte(key))
+
+	return crc32.Checksum([]byte(key), t)
 }
 
 func (c *Consistent) updateSortedHashes() {
