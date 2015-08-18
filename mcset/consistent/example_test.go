@@ -26,9 +26,9 @@ func ExampleNew() {
 	}
 	// Output:
 	// user_mcnulty => cacheA
-	// user_bunk => cacheA
-	// user_omar => cacheA
-	// user_bunny => cacheC
+	// user_bunk => cacheB
+	// user_omar => cacheC
+	// user_bunny => cacheB
 	// user_stringer => cacheC
 }
 
@@ -63,7 +63,7 @@ func ExampleAdd() {
 	// user_omar => cacheA
 	// user_bunny => cacheC
 	// user_stringer => cacheC
-	//
+
 	// with cacheD, cacheE [A, B, C, D, E]
 	// user_mcnulty => cacheE
 	// user_bunk => cacheA
@@ -97,16 +97,16 @@ func ExampleRemove() {
 	}
 	// Output:
 	// initial state [A, B, C]
-	// user_mcnulty => cacheA
-	// user_bunk => cacheA
-	// user_omar => cacheA
-	// user_bunny => cacheC
-	// user_stringer => cacheC
-	//
+	// user_mcnulty => cacheC
+	// user_bunk => cacheB
+	// user_omar => cacheB
+	// user_bunny => cacheA
+	// user_stringer => cacheB
+
 	// cacheC removed [A, B]
 	// user_mcnulty => cacheA
-	// user_bunk => cacheA
-	// user_omar => cacheA
-	// user_bunny => cacheB
+	// user_bunk => cacheB
+	// user_omar => cacheB
+	// user_bunny => cacheA
 	// user_stringer => cacheB
 }

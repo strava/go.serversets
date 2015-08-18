@@ -51,6 +51,8 @@ func New(watch Watcher) *MCSet {
 		consistent: consistent.New(),
 	}
 
+	mcset.consistent.NumberOfReplicas = 100
+
 	if watch != nil {
 		// first time don't trigger an event
 		mcset.setEndpoints(watch.Endpoints())
