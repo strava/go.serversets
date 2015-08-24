@@ -37,9 +37,13 @@ const (
 	Staging    Environment = "staging"
 )
 
+// DefaultZKTimeout is the zookeeper timeout used if it is not overwritten.
+var DefaultZKTimeout = 5 * time.Second
+
 // A ServerSet represents a service with a set of servers that may change over time.
 // The master lists of servers is kept as ephemeral nodes in Zookeeper.
 type ServerSet struct {
+	ZKTimeout   time.Duration
 	environment Environment
 	service     string
 	zkServers   []string
@@ -54,6 +58,8 @@ func New(environment Environment, service string, zookeepers []string) *ServerSe
 	}
 
 	ss := &ServerSet{
+		ZKTimeout: DefaultZKTimeout,
+
 		environment: environment,
 		service:     service,
 		zkServers:   zookeepers,
@@ -69,7 +75,7 @@ func (ss *ServerSet) ZookeeperServers() []string {
 }
 
 func (ss *ServerSet) connectToZookeeper() (*zk.Conn, <-chan zk.Event, error) {
-	return zk.Connect(ss.zkServers, time.Second)
+	return zk.Connect(ss.zkServers, ss.ZKTimeout)
 }
 
 // directoryPath returns the base path of where all the ephemeral nodes will live.
