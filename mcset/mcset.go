@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/strava/go.serversets/mcset/consistenthash"
-	"github.com/strava/go.serversets/mcset/mmh3"
+	"github.com/strava/go.serversets/vendor/github.com/reusee/mmh3"
 )
 
 var (

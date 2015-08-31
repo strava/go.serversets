@@ -20,7 +20,6 @@ type hash128 struct {
 	size uint64
 }
 
-// New128 creates an 128-bit hash
 func New128() hash.Hash {
 	return new(hash128)
 }

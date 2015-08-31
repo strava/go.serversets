@@ -19,30 +19,30 @@ func TestHash128(t *testing.T) {
 	}
 	for key, hex := range cases {
 		h.Write([]byte(key))
-		if v := fmt.Sprintf("%x", h.Sum(nil)); v != hex {
-			t.Fatalf("incorrect hex, got %v, expected, %v", v, hex)
+		if fmt.Sprintf("%x", h.Sum(nil)) != hex {
+			t.Fatal()
 		}
 		h.Reset()
 
 		for _, c := range key {
 			h.Write([]byte(string(c)))
 		}
-		if v := fmt.Sprintf("%x", h.Sum(nil)); v != hex {
-			t.Fatalf("incorrect hex, got %v, expected, %v", v, hex)
+		if fmt.Sprintf("%x", h.Sum(nil)) != hex {
+			t.Fatal()
 		}
 		h.Reset()
 
-		if v := fmt.Sprintf("%x", Sum128([]byte(key))); v != hex {
-			t.Fatalf("incorrect hex, got %v, expected, %v", v, hex)
+		if fmt.Sprintf("%x", Sum128([]byte(key))) != hex {
+			t.Fatal()
 		}
 	}
 
 	// for coverage
 	if h.BlockSize() != 16 {
-		t.Fatalf("incorrect block size, got %v", h.BlockSize())
+		t.Fatal()
 	}
 	if h.Size() != 16 {
-		t.Fatalf("inccorect size, got %v", h.Size())
+		t.Fatal()
 	}
 	h.Sum([]byte{'o'})
 }

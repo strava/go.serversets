@@ -17,7 +17,6 @@ type hash32 struct {
 	size uint32
 }
 
-// New32 creates a new 32-bit hash.
 func New32() hash.Hash32 {
 	return new(hash32)
 }
