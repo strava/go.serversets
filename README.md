@@ -81,10 +81,7 @@ The namespaces used by this library are completely configurable. One just needs 
 
 Dependencies
 ------------
-The centralized and consistent storage of service endpoints is handled by [Apache Zookeeper](http://zookeeper.apache.org/).
-So obviously, such a cluster is required. Go package dependencies beyond the standard library include:
-
-* [github.com/samuel/go-zookeeper/zk](https://github.com/samuel/go-zookeeper/)
+Dependencies are vendored in the `/vendor` directory. There are no other repos to download.
 
 Tests
 -----
