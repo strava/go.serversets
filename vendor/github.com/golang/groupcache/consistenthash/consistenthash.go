@@ -15,7 +15,6 @@ limitations under the License.
 */
 
 // Package consistenthash provides an implementation of a ring hash.
-// Sourced from github.com/golang/groupcache/consistenthash
 package consistenthash
 
 import (
@@ -24,10 +23,8 @@ import (
 	"strconv"
 )
 
-// Hash is the type of function used to compute hashes
 type Hash func(data []byte) uint32
 
-// Map represents a consistent hash over the set of keys/hosts.
 type Map struct {
 	hash     Hash
 	replicas int
@@ -35,7 +32,6 @@ type Map struct {
 	hashMap  map[int]string
 }
 
-// New creates a new consistent hash map
 func New(replicas int, fn Hash) *Map {
 	m := &Map{
 		replicas: replicas,
@@ -48,12 +44,12 @@ func New(replicas int, fn Hash) *Map {
 	return m
 }
 
-// IsEmpty returns true if there are no items available.
+// Returns true if there are no items available.
 func (m *Map) IsEmpty() bool {
 	return len(m.keys) == 0
 }
 
-// Add adds some keys to the hash. To clear, you need to create a new map.
+// Adds some keys to the hash.
 func (m *Map) Add(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < m.replicas; i++ {
@@ -65,7 +61,7 @@ func (m *Map) Add(keys ...string) {
 	sort.Ints(m.keys)
 }
 
-// Get returns the closest item in the hash to the provided key.
+// Gets the closest item in the hash to the provided key.
 func (m *Map) Get(key string) string {
 	if m.IsEmpty() {
 		return ""
