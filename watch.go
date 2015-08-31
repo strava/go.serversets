@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/samuel/go-zookeeper/zk"
+	"github.com/strava/go.serversets/vendor/github.com/samuel/go-zookeeper/zk"
 )
 
 // A Watch keeps tabs on a server set in Zookeeper and notifies

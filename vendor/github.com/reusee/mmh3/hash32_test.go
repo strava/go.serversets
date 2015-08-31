@@ -19,16 +19,16 @@ func TestHash32(t *testing.T) {
 	}
 	for key, hex := range cases {
 		h.Write([]byte(key))
-		if v := fmt.Sprintf("%x", h.Sum(nil)); v != hex {
-			t.Fatalf("incorrect hex, got %v, expected, %v", v, hex)
+		if fmt.Sprintf("%x", h.Sum(nil)) != hex {
+			t.Fatal()
 		}
 		h.Reset()
 
 		for _, c := range key {
 			h.Write([]byte(string(c)))
 		}
-		if v := fmt.Sprintf("%x", h.Sum(nil)); v != hex {
-			t.Fatalf("incorrect hex, got %v, expected, %v", v, hex)
+		if fmt.Sprintf("%x", h.Sum(nil)) != hex {
+			t.Fatal()
 		}
 		h.Reset()
 	}
@@ -42,22 +42,22 @@ func TestHash32(t *testing.T) {
 	}
 	for key, hash := range cases2 {
 		h.Write([]byte(key))
-		if v := h.Sum32(); v != hash {
-			t.Fatalf("incorrect hash, got %v, expected %v", v, hash)
+		if h.Sum32() != hash {
+			t.Fatal()
 		}
 		h.Reset()
 
-		if v := Sum32([]byte(key)); v != hash {
-			t.Fatalf("incorrect hash, got %v, expected %v", v, hash)
+		if Sum32([]byte(key)) != hash {
+			t.Fatal()
 		}
 	}
 
 	// for coverage
 	if h.BlockSize() != 4 {
-		t.Fatalf("incorrect block size, got %v", h.BlockSize())
+		t.Fatal()
 	}
 	if h.Size() != 4 {
-		t.Fatalf("inccorect size, got %v", h.Size())
+		t.Fatal()
 	}
 	h.Sum([]byte{'o'})
 }

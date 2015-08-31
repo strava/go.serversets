@@ -2,12 +2,12 @@ package mmh3
 
 import "sync"
 
-// hash function aliases
 var (
 	Hash32x86  = Sum32
 	Hash128x64 = Sum128
 
-	Hash32  = Sum32 //for backward compatible
+	//for backward compatible
+	Hash32  = Sum32
 	Hash128 = Sum128
 )
 
@@ -25,7 +25,6 @@ var (
 	}
 )
 
-// Sum32 computes the 32-bit hash over the data.
 func Sum32(key []byte) (ret uint32) {
 	h := pool32.Get().(*hash32)
 	h.Write(key)
@@ -35,7 +34,6 @@ func Sum32(key []byte) (ret uint32) {
 	return
 }
 
-// Sum128 computes the 128-bit hash over the data.
 func Sum128(key []byte) (ret []byte) {
 	h := pool128.Get().(*hash128)
 	h.Write(key)
