@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/strava/go.serversets/vendor/github.com/samuel/go-zookeeper/zk"
+	"github.com/strava/go.serversets/deps/github.com/samuel/go-zookeeper/zk"
 )
 
 var (
