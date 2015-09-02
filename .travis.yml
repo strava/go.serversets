@@ -17,13 +17,13 @@ before_install:
   - cd ../..
 
 script:
-  - go build $(go list ./... | grep -v /vendor/)
-  - go fmt $(go list ./... | grep -v /vendor/)
+  - go build $(go list ./... | grep -v /deps/)
+  - go fmt $(go list ./... | grep -v /deps/)
   - go get golang.org/x/tools/cmd/vet
   - go tool vet *.go
   - go tool vet ./httpset
   - go tool vet ./mcset
   - go tool vet ./fixedset
-  - go test -i -race $(go list ./... | grep -v /vendor/)
-  - go test -v -race $(go list ./... | grep -v /vendor/)
+  - go test -i -race $(go list ./... | grep -v /deps/)
+  - go test -v -race $(go list ./... | grep -v /deps/)
 
