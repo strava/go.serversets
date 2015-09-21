@@ -101,7 +101,7 @@ func (ss *ServerSet) Watch() (*Watch, error) {
 
 				watch.endpoints, err = watch.updateEndpoints(connection, keys)
 				if err != nil {
-					panic(fmt.Errorf("unable to reregister endpoint after session expired: %v", err))
+					panic(fmt.Errorf("unable to update endpoint list after session expired: %v", err))
 				}
 
 				watch.triggerEvent()
@@ -176,7 +176,12 @@ func (w *Watch) updateEndpoints(connection *zk.Conn, keys []string) ([]string, e
 		}
 
 		data, _, err := connection.Get(w.serverSet.directoryPath() + "/" + k)
-		if err != nil && err != zk.ErrNoNode {
+		if err == zk.ErrNoNode {
+			continue
+		}
+
+		if err != nil {
+			// most likely some sort of zk connection error
 			return nil, err
 		}
 
