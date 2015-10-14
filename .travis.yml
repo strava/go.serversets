@@ -1,11 +1,10 @@
 sudo: false
 language: go
 go:
-  - 1.4.2
+  - 1.5.1
 
-branches:
-  only:
-    - master
+env:
+  - GO15VENDOREXPERIMENT=1
 
 before_install:
   - wget http://apache.claz.org/zookeeper/zookeeper-3.4.6/zookeeper-3.4.6.tar.gz
