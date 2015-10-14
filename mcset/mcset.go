@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/strava/go.serversets/deps/github.com/golang/groupcache/consistenthash"
-	"github.com/strava/go.serversets/deps/github.com/reusee/mmh3"
+	"github.com/golang/groupcache/consistenthash"
+	"github.com/reusee/mmh3"
 )
 
 var (

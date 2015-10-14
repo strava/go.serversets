@@ -81,8 +81,9 @@ The namespaces used by this library are completely configurable. One just needs 
 
 Dependencies
 ------------
-Dependencies are vendored in the `/deps` directory. There are no other repos to download.
-We're using the `deps` directory to not conflict with the 'Go 1.5 vendor experiement.'
+Dependencies are vendored in the `/vendor` directory. This is compatible with the
+'Go 1.5 vendor experiment.' Set GO15VENDOREXPERIMENT=1 during the build to make
+use of these packages.
 
 Tests
 -----
