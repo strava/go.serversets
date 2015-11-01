@@ -13,6 +13,11 @@ import (
 	"github.com/samuel/go-zookeeper/zk"
 )
 
+const (
+	// SOH control character
+	SOH = "\x01"
+)
+
 // A Watch keeps tabs on a server set in Zookeeper and notifies
 // via the Event() channel when the list of servers changes.
 // The list of servers is updated automatically and will be up to date when the Event is sent.
@@ -175,20 +180,14 @@ func (w *Watch) updateEndpoints(connection *zk.Conn, keys []string) ([]string, e
 			continue
 		}
 
-		data, _, err := connection.Get(w.serverSet.directoryPath() + "/" + k)
-		if err == zk.ErrNoNode {
+		e, err := w.getEndpoint(connection, k)
+		if err != nil {
+			return nil, err
+		}
+
+		if e == nil {
+			// znode not found
 			continue
-		}
-
-		if err != nil {
-			// most likely some sort of zk connection error
-			return nil, err
-		}
-
-		e := entity{}
-		err = json.Unmarshal(data, &e)
-		if err != nil {
-			return nil, err
 		}
 
 		if e.Status == statusAlive {
@@ -198,6 +197,37 @@ func (w *Watch) updateEndpoints(connection *zk.Conn, keys []string) ([]string, e
 
 	sort.Strings(endpoints)
 	return endpoints, nil
+
+}
+
+func (w *Watch) getEndpoint(connection *zk.Conn, key string) (*entity, error) {
+
+	data, _, err := connection.Get(w.serverSet.directoryPath() + "/" + key)
+	if err == zk.ErrNoNode {
+		return nil, nil
+	}
+
+	if err != nil {
+		// most likely some sort of zk connection error
+		return nil, err
+	}
+
+	// Found this SOH check while browsing the docker/libkv source
+	// https://github.com/docker/libkv/commit/035e8143a336ceb29760c07278ef930f49767377
+
+	// FIXME handle very rare cases where Get returns the
+	// SOH control character instead of the actual value
+	if string(data) == SOH {
+		return w.getEndpoint(connection, key)
+	}
+
+	e := &entity{}
+	err = json.Unmarshal(data, &e)
+	if err != nil {
+		return nil, err
+	}
+
+	return e, err
 }
 
 // triggerEvent will queue up something in the Event channel if there isn't already something there.
