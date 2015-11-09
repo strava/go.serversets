@@ -2,6 +2,7 @@ package mcset
 
 import (
 	"errors"
+	"log"
 	"net"
 	"sort"
 	"sync"
@@ -14,7 +15,15 @@ import (
 var (
 	// ErrNoServers is returned when no servers are configured or available.
 	ErrNoServers = errors.New("mcset: no servers configured or available")
+
+	// DefaultLogger is used by default to print change event messages.
+	DefaultLogger Logger = defaultLogger{}
 )
+
+// Logger is an interface that can be implemented to provide custom log output.
+type Logger interface {
+	Printf(string, ...interface{})
+}
 
 // A Watcher represents how a serverset.Watch is used so it can be stubbed out for tests.
 type Watcher interface {
@@ -30,6 +39,8 @@ type MCSet struct {
 
 	LastEvent  time.Time
 	EventCount int
+
+	Logger Logger
 
 	// This channel will get an event when zookeeper updates things
 	// calling SetEndpoints will not trigger this type of event.
@@ -48,6 +59,7 @@ type MCSet struct {
 func New(watch Watcher) *MCSet {
 	mcset := &MCSet{
 		Watcher: watch,
+		Logger:  DefaultLogger,
 		event:   make(chan struct{}, 1),
 	}
 
@@ -105,6 +117,8 @@ func (s *MCSet) setEndpoints(endpoints []string) {
 
 	sort.StringSlice(endpoints).Sort()
 
+	s.Logger.Printf("new endpoints for mcset: %v", endpoints)
+
 	s.consistent = consistenthash.New(150, mmh3.Sum32)
 	s.consistent.Add(endpoints...)
 }
@@ -159,4 +173,10 @@ func (s *MCSet) triggerEvent() {
 	case s.event <- struct{}{}:
 	default:
 	}
+}
+
+type defaultLogger struct{}
+
+func (defaultLogger) Printf(format string, a ...interface{}) {
+	log.Printf(format, a...)
 }
