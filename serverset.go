@@ -121,9 +121,9 @@ func (ss *ServerSet) createFullPath(connection *zk.Conn) error {
 
 // structure of the data in each member znode
 // Mimics finagle serverset structure.
-type entity struct {
+type Entity struct {
 	ServiceEndpoint     endpoint            `json:"serviceEndpoint"`
-	AdditionalEndpoints map[string]endpoint `json:"additionalEndpoints"` // unused
+	AdditionalEndpoints map[string]endpoint `json:"additionalEndpoints"`
 	Status              string              `json:"status"`
 }
 
@@ -132,8 +132,8 @@ type endpoint struct {
 	Port int    `json:"port"`
 }
 
-func newEntity(host string, port int) *entity {
-	return &entity{
+func newEntity(host string, port int) *Entity {
+	return &Entity{
 		ServiceEndpoint:     endpoint{host, port},
 		AdditionalEndpoints: make(map[string]endpoint),
 		Status:              statusAlive,
