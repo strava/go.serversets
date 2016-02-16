@@ -16,6 +16,7 @@ before_install:
   - cd ../..
 
 install:
+  - go get github.com/strava/go.statsd
   - go get github.com/apache/thrift/lib/go/thrift
 
 script:

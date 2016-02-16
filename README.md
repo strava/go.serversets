@@ -2,18 +2,18 @@ go.serversets [![Build Status](https://travis-ci.org/strava/go.serversets.png?br
 =============
 
 Package **go.serversets** provides an simple interface for service discovery using [Apache Zookeeper](http://zookeeper.apache.org/).
-Servers/endpoints register themselves and clients always have an updated host list. 
+Servers/endpoints register themselves and clients always have an updated host list.
 
-This core package just provides a list of hostnames and ports. Sub-packages wrap 
+This core package just provides a list of hostnames and ports. Sub-packages wrap
 the endpoint list for common use cases:
 
 * [mcset](/mcset) provides consistent hashing over a set of memcache hosts.
 * [httpset](/httpset) round-robins standard HTTP requests to the set of hosts.
 * [fixedset](/fixedset) severset watch without the zookeeper. Take advantage of
-the load balancing packages without the zookeeper discovery.
+* [thriftset](/thriftset) does "least request" load balancing around the given endpoints.
 
-This package is used internally at [Strava](http://strava.com) for 
-[Finagle](https://twitter.github.io/finagle/) service discovery and memcache node registration. 
+This package is used internally at [Strava](http://strava.com) for
+[Finagle](https://twitter.github.io/finagle/) service discovery and memcache node registration.
 
 Usage
 -----
@@ -29,7 +29,7 @@ Available environment constants: `serversets.Local`, `serversets.Staging`, `serv
 ### Register an Endpoint
 
 Service endpoints/producers/servers should register themselves as an endpoint. Example:
-	
+
 	pingFunction := func() error {
 		return nil
 	}
@@ -39,7 +39,7 @@ Service endpoints/producers/servers should register themselves as an endpoint. E
 		servicePort,
 		pingFunction)
 
-The ping function can be `nil`. But if it's not, it'll be checked every second, by default. If there is an 
+The ping function can be `nil`. But if it's not, it'll be checked every second, by default. If there is an
 error the endpoint will be unregistered. Once the issue is resolved it'll be reregistered automatically.
 This allows for registering external processes that may fail independently of the monitoring process.
 
@@ -87,7 +87,7 @@ use of these packages.
 
 Tests
 -----
-Tests require a Zookeeper server. The default is "localhost" but a different 
+Tests require a Zookeeper server. The default is "localhost" but a different
 host can be used by changing the `TestServer` variable in [serverset_test.go](serverset_test.go)
 
 	go test github.com/strava/go.serversets/...
@@ -95,6 +95,6 @@ host can be used by changing the `TestServer` variable in [serverset_test.go](se
 Potential Improvements and Contributing
 ---------------------------------------
 This library simply provides a list of active endpoints. But it would nice if it did some
-load balancing, error checking, retries etc. Simple versions of this are available for 
-[memcache](/mcset) and [http](/httpset) but they can be improved. 
+load balancing, error checking, retries etc. Simple versions of this are available for
+[memcache](/mcset) and [http](/httpset) but they can be improved.
 So, if you have some ideas, submit a pull request.
